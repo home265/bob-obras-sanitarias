@@ -1,0 +1,19 @@
+{
+  "pipes": [
+    { "dn_mm": 110, "barra_m": 3 },
+    { "dn_mm": 160, "barra_m": 3 }
+  ],
+  "fittings": [
+    { "code": "PVCJ-C90-110", "tipo": "codo90", "dn_mm": 110 },
+    { "code": "PVCJ-C45-110", "tipo": "codo45", "dn_mm": 110 },
+    { "code": "PVCJ-TEE-110", "tipo": "tee",    "dn_mm": 110 },
+
+    { "code": "PVCJ-C90-160", "tipo": "codo90", "dn_mm": 160 },
+    { "code": "PVCJ-C45-160", "tipo": "codo45", "dn_mm": 160 },
+    { "code": "PVCJ-TEE-160", "tipo": "tee",    "dn_mm": 160 }
+  ],
+  "insumos": [
+    { "code": "PVCJ-ARO-110", "tipo": "junta_elastica", "dn_mm": 110 },
+    { "code": "PVCJ-ARO-160", "tipo": "junta_elastica", "dn_mm": 160 }
+  ]
+}

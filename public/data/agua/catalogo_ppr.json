@@ -1,0 +1,31 @@
+{
+  "pipes": [
+    { "dn_mm": 20, "inner_mm": 13.2, "c_hw": 150, "barra_m": 4 },
+    { "dn_mm": 25, "inner_mm": 16.6, "c_hw": 150, "barra_m": 4 },
+    { "dn_mm": 32, "inner_mm": 21.2, "c_hw": 150, "barra_m": 4 },
+    { "dn_mm": 40, "inner_mm": 26.6, "c_hw": 150, "barra_m": 4 },
+    { "dn_mm": 50, "inner_mm": 33.4, "c_hw": 150, "barra_m": 4 },
+    { "dn_mm": 63, "inner_mm": 42.0, "c_hw": 150, "barra_m": 4 }
+  ],
+  "fittings": [
+    { "code": "PPR-C90-20", "tipo": "codo90",   "dn_mm": 20 },
+    { "code": "PPR-C45-20", "tipo": "codo45",   "dn_mm": 20 },
+    { "code": "PPR-TEE-20", "tipo": "tee_paso", "dn_mm": 20 },
+    { "code": "PPR-TEY-20", "tipo": "tee_deriv","dn_mm": 20 },
+
+    { "code": "PPR-C90-25", "tipo": "codo90",   "dn_mm": 25 },
+    { "code": "PPR-C45-25", "tipo": "codo45",   "dn_mm": 25 },
+    { "code": "PPR-TEE-25", "tipo": "tee_paso", "dn_mm": 25 },
+    { "code": "PPR-TEY-25", "tipo": "tee_deriv","dn_mm": 25 },
+
+    { "code": "PPR-C90-32", "tipo": "codo90",   "dn_mm": 32 },
+    { "code": "PPR-C45-32", "tipo": "codo45",   "dn_mm": 32 },
+    { "code": "PPR-TEE-32", "tipo": "tee_paso", "dn_mm": 32 },
+    { "code": "PPR-TEY-32", "tipo": "tee_deriv","dn_mm": 32 }
+  ],
+  "valves": [
+    { "code": "PPR-VAL-20", "tipo": "llave_paso", "dn_mm": 20 },
+    { "code": "PPR-VAL-25", "tipo": "llave_paso", "dn_mm": 25 },
+    { "code": "PPR-VAL-32", "tipo": "llave_paso", "dn_mm": 32 }
+  ]
+}

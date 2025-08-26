@@ -1,0 +1,7 @@
+[
+  { "dn_mm": 40,  "min": 2.0,  "recom": 3.0,  "max": 5.0 },
+  { "dn_mm": 50,  "min": 2.0,  "recom": 3.0,  "max": 5.0 },
+  { "dn_mm": 75,  "min": 1.5,  "recom": 2.0,  "max": 5.0 },
+  { "dn_mm": 110, "min": 1.67, "recom": 2.5,  "max": 5.0 },
+  { "dn_mm": 160, "min": 1.0,  "recom": 1.5,  "max": 5.0 }
+]

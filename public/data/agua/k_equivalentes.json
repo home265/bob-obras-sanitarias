@@ -1,0 +1,16 @@
+[
+  { "tipo": "codo90", "dn_mm": 20, "leq_m": 0.80 },
+  { "tipo": "codo45", "dn_mm": 20, "leq_m": 0.40 },
+  { "tipo": "tee_paso", "dn_mm": 20, "leq_m": 0.60 },
+  { "tipo": "tee_deriv", "dn_mm": 20, "leq_m": 1.20 },
+
+  { "tipo": "codo90", "dn_mm": 25, "leq_m": 1.00 },
+  { "tipo": "codo45", "dn_mm": 25, "leq_m": 0.50 },
+  { "tipo": "tee_paso", "dn_mm": 25, "leq_m": 0.75 },
+  { "tipo": "tee_deriv", "dn_mm": 25, "leq_m": 1.50 },
+
+  { "tipo": "codo90", "dn_mm": 32, "leq_m": 1.30 },
+  { "tipo": "codo45", "dn_mm": 32, "leq_m": 0.65 },
+  { "tipo": "tee_paso", "dn_mm": 32, "leq_m": 0.95 },
+  { "tipo": "tee_deriv", "dn_mm": 32, "leq_m": 1.90 }
+]

@@ -1,0 +1,34 @@
+{
+  "pipes": [
+    { "dn_mm": 40,  "barra_m": 3 },
+    { "dn_mm": 50,  "barra_m": 3 },
+    { "dn_mm": 75,  "barra_m": 3 },
+    { "dn_mm": 110, "barra_m": 3 },
+    { "dn_mm": 160, "barra_m": 3 }
+  ],
+  "fittings": [
+    { "code": "PVC-C90-40",  "tipo": "codo90", "dn_mm": 40 },
+    { "code": "PVC-C45-40",  "tipo": "codo45", "dn_mm": 40 },
+    { "code": "PVC-TEE-40",  "tipo": "tee",    "dn_mm": 40 },
+
+    { "code": "PVC-C90-50",  "tipo": "codo90", "dn_mm": 50 },
+    { "code": "PVC-C45-50",  "tipo": "codo45", "dn_mm": 50 },
+    { "code": "PVC-TEE-50",  "tipo": "tee",    "dn_mm": 50 },
+
+    { "code": "PVC-C90-75",  "tipo": "codo90", "dn_mm": 75 },
+    { "code": "PVC-C45-75",  "tipo": "codo45", "dn_mm": 75 },
+    { "code": "PVC-TEE-75",  "tipo": "tee",    "dn_mm": 75 },
+
+    { "code": "PVC-C90-110", "tipo": "codo90", "dn_mm": 110 },
+    { "code": "PVC-C45-110", "tipo": "codo45", "dn_mm": 110 },
+    { "code": "PVC-TEE-110", "tipo": "tee",    "dn_mm": 110 },
+
+    { "code": "PVC-C90-160", "tipo": "codo90", "dn_mm": 160 },
+    { "code": "PVC-C45-160", "tipo": "codo45", "dn_mm": 160 },
+    { "code": "PVC-TEE-160", "tipo": "tee",    "dn_mm": 160 }
+  ],
+  "insumos": [
+    { "code": "PVC-PEG-01", "tipo": "pegamento_pvc" },
+    { "code": "PVC-LIM-01", "tipo": "limpiador_pvc" }
+  ]
+}
