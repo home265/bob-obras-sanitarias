@@ -1,184 +1,153 @@
+// app/proyecto/[id]/export/page.tsx
 "use client";
-
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { getProjectById } from "@/lib/storage";
-import type { Project } from "@/lib/types";
-import { aggregateBOM } from "@/lib/export";
+import { getProject } from "@/lib/project/storage";
+import { aggregateMaterials } from "@/lib/project/compute";
+import type { Project as DBProject } from "@/lib/db";
 
 export default function ProyectoExportPage() {
-  const params = useParams<{ id: string }>();
+  const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const id = params.id;
 
-  const [project, setProject] = useState<Project | null>(null);
-  const [showPartidas, setShowPartidas] = useState(true);
+  const [project, setProject] = useState<DBProject | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const p = getProjectById(id);
-    if (!p) {
-      router.replace("/");
-      return;
-    }
-    setProject(p);
+    (async () => {
+      if (!id) return;
+      const p = await getProject(id);
+      if (!p) {
+        router.replace("/proyecto");
+        return;
+      }
+      setProject(p);
+      setLoading(false);
+    })();
   }, [id, router]);
 
-  const bomAgregado = useMemo(() => (project ? aggregateBOM(project) : []), [project]);
-  const totalItems = useMemo(
-    () => bomAgregado.reduce((s, i) => s + (Number(i.qty) || 0), 0),
-    [bomAgregado]
-  );
+  const mat = useMemo(() => (project ? aggregateMaterials(project) : []), [project]);
+  const date = new Date().toLocaleDateString("es-AR", {
+    year: 'numeric', month: 'long', day: 'numeric'
+  });
 
+  function onPrint() {
+    window.print();
+  }
+
+  if (loading) {
+    return <div className="p-6 text-center">Cargando vista previa...</div>;
+  }
   if (!project) return null;
 
   return (
-    <section className="mx-auto max-w-5xl space-y-5">
-      {/* Controles (no se imprimen) */}
-      <div className="print:hidden flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <a href={`/proyecto/${id}`} className="btn btn-ghost">Volver al proyecto</a>
-        </div>
-        <div className="flex items-center gap-2">
-          <button className="btn" onClick={() => window.print()}>Imprimir / Exportar PDF</button>
-          <label className="flex items-center gap-2 text-sm opacity-80">
-            <input
-              type="checkbox"
-              checked={showPartidas}
-              onChange={(e) => setShowPartidas(e.target.checked)}
-            />
-            Incluir detalle de partidas
-          </label>
-        </div>
+    <div className="mx-auto max-w-4xl p-8 print:p-0 bg-white text-gray-800 font-sans">
+      <style jsx global>{`
+        @media print {
+          .no-print { display: none !important; }
+          body { 
+            background: #ffffff !important; 
+            color: #111827 !important; 
+          }
+          @page { 
+            size: A4; 
+            margin: 1.5cm; 
+          }
+        }
+        .header-title { font-size: 24px; font-weight: 700; color: #1a202c; }
+        .project-details { color: #4a5568; }
+        .section-title { 
+          font-size: 18px; 
+          font-weight: 600; 
+          margin-top: 2rem; 
+          margin-bottom: 0.5rem; 
+          border-bottom: 2px solid #e2e8f0; 
+          padding-bottom: 0.25rem; 
+          color: #2d3748;
+        }
+        .materials-table { 
+          width: 100%; 
+          border-collapse: collapse; 
+          font-size: 12px; 
+        }
+        .materials-table th, .materials-table td { 
+          padding: 8px 4px; 
+          text-align: left;
+        }
+        .materials-table thead th { 
+          color: #718096; 
+          border-bottom: 1px solid #cbd5e0; 
+          font-weight: 600;
+        }
+        .materials-table tbody tr:nth-child(even) { 
+          background-color: #f7fafc; 
+        }
+        .materials-table .text-right {
+          text-align: right;
+        }
+        .footer-note { 
+          margin-top: 3rem; 
+          padding-top: 1rem;
+          border-top: 1px solid #e2e8f0;
+          font-size: 10px; 
+          color: #a0aec0; 
+          text-align: center; 
+        }
+      `}</style>
+
+      <div className="no-print mb-6 flex justify-between items-center bg-gray-100 p-4 rounded-lg shadow-sm">
+        <button 
+          onClick={() => router.back()} 
+          className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded transition-colors"
+        >
+          ← Volver al Proyecto
+        </button>
+        <button 
+          onClick={onPrint} 
+          className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors"
+        >
+          Imprimir / Guardar PDF
+        </button>
       </div>
 
-      {/* Encabezado */}
-      <header className="rounded-2xl border p-5 card">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-semibold">{project.name}</h1>
-            <p className="opacity-80">
-              Proyecto — creado el {new Date(project.createdAt).toLocaleString()}
-            </p>
-          </div>
-          <div className="text-sm opacity-80">
-            <div><strong>Fecha de impresión:</strong> {new Date().toLocaleString()}</div>
-            <div><strong>Total ítems BOM:</strong> {totalItems}</div>
-          </div>
+      <header className="mb-8">
+        <h1 className="header-title">{project.name}</h1>
+        <div className="project-details mt-2 space-y-1">
+          {project.client && <div><strong>Cliente:</strong> {project.client}</div>}
+          {project.siteAddress && <div><strong>Obra:</strong> {project.siteAddress}</div>}
+          <div><strong>Fecha de Emisión:</strong> {date}</div>
         </div>
       </header>
 
-      {/* BOM agregado */}
-      <section className="rounded-2xl border p-5 card">
-        <h2 className="mb-2 text-lg font-semibold">BOM agregado</h2>
-        {bomAgregado.length === 0 ? (
-          <p className="opacity-80 text-sm">No hay materiales en el proyecto.</p>
+      <section>
+        <h2 className="section-title">Resumen de Materiales</h2>
+        {mat.length === 0 ? (
+          <div className="project-details">No hay materiales computados en este proyecto.</div>
         ) : (
-          <div className="card--table overflow-x-auto">
-            <table className="min-w-full text-sm">
-              <thead>
-                <tr className="text-left opacity-80">
-                  <th className="py-2 pr-4">Código</th>
-                  <th className="py-2 pr-4">Descripción</th>
-                  <th className="py-2 pr-4">DN</th>
-                  <th className="py-2 pr-4">Cantidad</th>
-                  <th className="py-2 pr-4">Unidad</th>
+          <table className="materials-table">
+            <thead>
+              <tr>
+                <th>Material</th>
+                <th className="text-right">Cantidad</th>
+                <th style={{ paddingLeft: '1rem' }}>Unidad</th>
+              </tr>
+            </thead>
+            <tbody>
+              {mat.map((m, i) => (
+                <tr key={`${m.key}-${i}`}>
+                  <td>{m.label}</td>
+                  <td className="text-right">{m.qty.toLocaleString('es-AR')}</td>
+                  <td style={{ paddingLeft: '1rem' }}>{m.unit}</td>
                 </tr>
-              </thead>
-              <tbody>
-                {bomAgregado.map((i) => (
-                  <tr key={i.code + (i.dn_mm ?? "")} className="border-t border-[--color-border]">
-                    <td className="py-2 pr-4">{i.code}</td>
-                    <td className="py-2 pr-4">{i.desc}</td>
-                    <td className="py-2 pr-4">{i.dn_mm ?? "-"}</td>
-                    <td className="py-2 pr-4">{i.qty}</td>
-                    <td className="py-2 pr-4">{i.unidad ?? "-"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              ))}
+            </tbody>
+          </table>
         )}
       </section>
 
-      {/* Detalle por partidas (opcional) */}
-      {showPartidas && (
-        <section className="rounded-2xl border p-5 card break-inside-avoid">
-          <h2 className="mb-2 text-lg font-semibold">Detalle de partidas</h2>
-          {project.partidas.length === 0 ? (
-            <p className="opacity-80 text-sm">No hay partidas.</p>
-          ) : (
-            <div className="space-y-5">
-              {project.partidas.map((p) => (
-                <article key={p.id} className="rounded-xl border p-4" style={{ borderColor: "var(--border)" }}>
-                  <div className="flex flex-wrap items-start justify-between gap-2">
-                    <div>
-                      <div className="text-sm opacity-80">{p.kind.toUpperCase()}</div>
-                      <h3 className="font-semibold">{p.summary}</h3>
-                    </div>
-                    <div className="text-sm opacity-70">
-                      {new Date(p.createdAt).toLocaleString()}
-                    </div>
-                  </div>
-
-                  {Array.isArray(p.bom) && p.bom.length > 0 && (
-                    <div className="mt-3 card--table overflow-x-auto">
-                      <table className="min-w-full text-sm">
-                        <thead>
-                          <tr className="text-left opacity-80">
-                            <th className="py-2 pr-4">Código</th>
-                            <th className="py-2 pr-4">Descripción</th>
-                            <th className="py-2 pr-4">DN</th>
-                            <th className="py-2 pr-4">Cant.</th>
-                            <th className="py-2 pr-4">Unidad</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {p.bom.map((i) => (
-                            <tr key={i.code + (i.dn_mm ?? "")} className="border-t border-[--color-border]">
-                              <td className="py-2 pr-4">{i.code}</td>
-                              <td className="py-2 pr-4">{i.desc}</td>
-                              <td className="py-2 pr-4">{i.dn_mm ?? "-"}</td>
-                              <td className="py-2 pr-4">{i.qty}</td>
-                              <td className="py-2 pr-4">{i.unidad ?? "-"}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-                </article>
-              ))}
-            </div>
-          )}
-        </section>
-      )}
-
-      {/* Estilos de impresión locales a esta página */}
-      <style jsx>{`
-        @page {
-          size: A4;
-          margin: 14mm;
-        }
-        @media print {
-          :root {
-            color-scheme: light;
-          }
-          body {
-            background: white !important;
-            color: black !important;
-          }
-          .card {
-            background: #fff !important;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
-          }
-          .print\\:hidden { display: none !important; }
-          a { color: inherit !important; text-decoration: none !important; }
-          table { page-break-inside: auto; }
-          tr { page-break-inside: avoid; page-break-after: auto; }
-          section, article { break-inside: avoid; }
-        }
-      `}</style>
-    </section>
+      <footer className="footer-note">
+        <p>Este documento fue generado por Obras Sanitarias Calc.</p>
+      </footer>
+    </div>
   );
 }
