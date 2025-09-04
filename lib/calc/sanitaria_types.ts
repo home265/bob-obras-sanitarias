@@ -13,20 +13,20 @@ export interface DisposicionFinal {
   tipo: "cloaca" | "estatico";
   profundidadConexion_cm: number;
   distanciaPozo_m: number;
-  habitantes: number; // Relevante para pozo/biodigestor
+  habitantes: number;
 }
 
 export interface AmbienteSanitario {
   id: string;
   nombre: string;
-  planta: number; // 0 para PB, 1 para Piso 1, etc.
-  artefactos: Record<string, number>; // ej: { inodoro: 1 }
+  planta: number;
+  artefactos: Record<string, number>;
 }
 
 export interface Montante {
     id: string;
     nombre: string;
-    plantaDescarga: number; // Piso más alto que descarga en él
+    plantaDescarga: number;
 }
 
 export interface Colectora {
@@ -36,6 +36,29 @@ export interface Colectora {
     accesorios: Record<string, number>;
 }
 
+export interface TramoVentilacion {
+  id: string;
+  nombre: string;
+  dn_mm: 63 | 110;
+  longitud_m: number;
+  accesorios: Record<string, number>;
+  terminacion: "sombrerete" | "abierto";
+}
+
+// --- Tipos para Catálogos ---
+
+interface Pendiente {
+  dn_mm: number;
+  min: number;
+  recom: number;
+  max: number;
+}
+
+interface DistanciasMax {
+  general_m: number;
+  a_artefactos_sin_prol_m: number;
+}
+
 // --- Payload completo para la función de cálculo ---
 export interface SanitariaPayload {
   edificio: EdificioSanitario;
@@ -43,11 +66,14 @@ export interface SanitariaPayload {
   ambientes: AmbienteSanitario[];
   montantes: Montante[];
   colectoras: Colectora[];
+  ventilaciones: TramoVentilacion[]; // Se añade el sistema de ventilación
   catalogos: {
-    pvcPegamento: any;
-    pvcJunta: any;
-    pendientes: any;
-    distanciasMax: any;
+    pendientes: Pendiente[];
+    distanciasMax: DistanciasMax;
+    // Los catálogos de PVC no necesitan un tipo estricto aquí
+    // porque su estructura es genérica y se usa para buscar materiales
+    pvcPegamento: Record<string, any>;
+    pvcJunta: Record<string, any>;
   }
 }
 

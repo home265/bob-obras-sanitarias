@@ -1,55 +1,101 @@
-"use client"; // <-- LA LÍNEA QUE SOLUCIONA EL ERROR
+"use client";
 
 import { useState, useMemo, Suspense, useEffect } from "react";
 import type { MaterialLine } from "@/lib/project/types";
 
-import type { Sistema, AmbienteCalefaccion, DisenoLosa, DisenoRadiadores, CalefaccionPayload } from "@/lib/calc/calefaccion_types";
+// Se importan todos los tipos necesarios, incluyendo el Resultado completo
+import type { Sistema, AmbienteCalefaccion, DisenoLosa, DisenoRadiadores, CalefaccionPayload, ResultadoCalefaccion } from "@/lib/calc/calefaccion_types";
 import Step1_Sistema from "./components/Step1_Sistema";
 import Step2_Ambientes from "./components/Step2_Ambientes";
 import Step3_Diseno from "./components/Step3_Diseno";
 import ResultTable, { type ResultRow } from "@/components/ui/ResultTable";
 import AddToProject from "@/components/ui/AddToProject";
-import HelpPopover from "@/components/ui/HelpPopover";
 import { calcularCalefaccion } from "@/lib/calc/calefaccion";
 import { rid } from "@/lib/id";
+import { useJson } from "@/public/data/useJson";
+
 
 function CalefaccionCalculator() {
   const [step, setStep] = useState(1);
-  const [sistema, setSistema] = useState<Sistema>({ tipo: 'losa_radiante', calderaDual: false, plantas: 1 });
+
+  // Se cargan los catálogos en el componente padre
+  const zonasClimaticas = useJson<CalefaccionPayload['catalogos']['zonasClimaticas']>("/data/calefaccion/zonas_climaticas_argentina.json", []);
+  const coeficientes = useJson<CalefaccionPayload['catalogos']['coeficientes']>("/data/calefaccion/coeficientes_transmitancia.json", { muros: [], techos: [], vidrios: [], pisos: [] });
+  
+  // Se actualizan los estados iniciales para incluir los nuevos campos
+  const [sistema, setSistema] = useState<Sistema>({ 
+    tipo: 'losa_radiante', 
+    calderaDual: false, 
+    plantas: 1,
+    zonaClimaticaId: "templada_fria" // Valor por defecto inicial
+  });
+
   const [ambientes, setAmbientes] = useState<AmbienteCalefaccion[]>([
-    { id: rid('amb-cal'), nombre: 'Living Comedor', planta: 0, largo_m: 7, ancho_m: 5, alto_m: 2.8, vidrio: 'simple', m2_vidrio: 6 },
+    { 
+      id: rid('amb-cal'), 
+      nombre: 'Living Comedor', 
+      planta: 0, 
+      largo_m: 7, 
+      ancho_m: 5, 
+      alto_m: 2.8, 
+      tipoVidrio: 'simple', 
+      m2_vidrio: 6,
+      // Nuevos campos con valores por defecto
+      tipoMuro: "ladrillo_hueco_18_revoque",
+      m2_muro_exterior: 25,
+      tipoTecho: "losa_hormigon_20_sin_aislacion",
+      m2_techo_ultimo_piso: 35
+    },
   ]);
   const [disenoLosa, setDisenoLosa] = useState<DisenoLosa>({ separacion_cm: 15, longitudMaxima_m: 100 });
   const [disenoRadiadores, setDisenoRadiadores] = useState<DisenoRadiadores>({});
   
-  const [results, setResults] = useState<{informe: ResultRow[], recomendaciones: string[]} | null>(null);
-  const [materials, setMaterials] = useState<MaterialLine[]>([]);
+  const [results, setResults] = useState<ResultadoCalefaccion | null>(null);
+
+  // Efecto para setear valores por defecto una vez que cargan los catálogos
+  useEffect(() => {
+    if (zonasClimaticas.length > 0 && !sistema.zonaClimaticaId) {
+      setSistema(s => ({ ...s, zonaClimaticaId: zonasClimaticas[3]?.id || zonasClimaticas[0].id }));
+    }
+  }, [zonasClimaticas, sistema.zonaClimaticaId]);
+
 
   useEffect(() => {
     setResults(null);
-    setMaterials([]);
   }, [sistema, ambientes, disenoLosa, disenoRadiadores]);
 
   const handleCalculate = () => {
-    const payload: CalefaccionPayload = { sistema, ambientes, disenoLosa, disenoRadiadores };
-    const { informe, recomendaciones, materiales } = calcularCalefaccion(payload);
-    setResults({ informe, recomendaciones });
-    setMaterials(materiales);
+    // Se construye el payload con los catálogos cargados
+    const payload: CalefaccionPayload = { 
+      sistema, 
+      ambientes, 
+      disenoLosa, 
+      disenoRadiadores,
+      catalogos: {
+        zonasClimaticas,
+        coeficientes,
+      }
+    };
+    const resultData = calcularCalefaccion(payload);
+    setResults(resultData);
   };
   
   const defaultTitle = `Cálculo de Calefacción - ${sistema.tipo === 'losa_radiante' ? 'Losa Radiante' : 'Radiadores'}`;
+  
   const rawData = useMemo(() => ({
     inputs: { sistema, ambientes, disenoLosa, disenoRadiadores },
-    outputs: { ...results, materials }
-  }), [sistema, ambientes, disenoLosa, disenoRadiadores, results, materials]);
+    outputs: { ...results }
+  }), [sistema, ambientes, disenoLosa, disenoRadiadores, results]);
 
   return (
     <section className="space-y-6">
       <h1 className="text-2xl font-semibold">Calculadora de Calefacción Profesional</h1>
       <div className="grid md:grid-cols-2 gap-4">
         <div className="card p-4 space-y-6">
-          {step === 1 && <Step1_Sistema sistema={sistema} setSistema={setSistema} />}
-          {step === 2 && <Step2_Ambientes ambientes={ambientes} setAmbientes={setAmbientes} plantas={sistema.plantas} />}
+          <Suspense fallback={<div>Cargando...</div>}>
+            {step === 1 && <Step1_Sistema sistema={sistema} setSistema={setSistema} />}
+            {step === 2 && <Step2_Ambientes ambientes={ambientes} setAmbientes={setAmbientes} plantas={sistema.plantas} />}
+          </Suspense>
           {step === 3 && <Step3_Diseno tipo={sistema.tipo} disenoLosa={disenoLosa} setDisenoLosa={setDisenoLosa} disenoRadiadores={disenoRadiadores} setDisenoRadiadores={setDisenoRadiadores} />}
           <div className="flex justify-between items-center pt-4 border-t border-border">
             <button onClick={() => setStep(s => Math.max(1, s - 1))} disabled={step === 1} className="btn btn-secondary">Anterior</button>
@@ -77,15 +123,15 @@ function CalefaccionCalculator() {
                   </ul>
                 </div>
               )}
-              {materials.length > 0 && (
+              {results.materiales.length > 0 && (
                 <div className="card p-4 space-y-3">
                   <h3 className="font-semibold flex items-center mb-3">Lista Completa de Materiales</h3>
-                  <ResultTable items={materials.map(m => ({label: m.label, qty: m.qty, unit: m.unit}))} />
+                  <ResultTable items={results.materiales.map(m => ({label: m.label, qty: m.qty, unit: m.unit}))} />
                   <div className="pt-3 border-t border-border">
                     <AddToProject
-                      kind="losa_radiante" // O podrías hacerlo dinámico
+                      kind={sistema.tipo}
                       defaultTitle={defaultTitle}
-                      items={materials}
+                      items={results.materiales}
                       raw={rawData}
                     />
                   </div>

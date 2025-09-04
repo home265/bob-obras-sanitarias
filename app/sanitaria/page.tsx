@@ -3,17 +3,18 @@
 import { useState, useMemo, Suspense, useEffect } from "react";
 import type { MaterialLine } from "@/lib/project/types";
 
-
-import type { EdificioSanitario, DisposicionFinal, AmbienteSanitario, Montante, Colectora, SanitariaPayload } from "@/lib/calc/sanitaria_types";
+// Se importan los nuevos tipos, incluyendo TramoVentilacion y ResultadoSanitario
+import type { EdificioSanitario, DisposicionFinal, AmbienteSanitario, Montante, Colectora, TramoVentilacion, SanitariaPayload, ResultadoSanitario } from "@/lib/calc/sanitaria_types";
 import Step1_General from "./components/Step1_General";
 import Step2_Ambientes from "./components/Step2_Ambientes";
 import Step3_Trazado from "./components/Step3_Trazado";
+import Step4_Ventilacion from "./components/Step4_Ventilacion"; // Se importa el nuevo paso
 import ResultTable, { type ResultRow } from "@/components/ui/ResultTable";
 import AddToProject from "@/components/ui/AddToProject";
-import HelpPopover from "@/components/ui/HelpPopover";
 import { calcularSanitaria } from "@/lib/calc/sanitaria";
 import { rid } from "@/lib/id";
 import { useJson } from "@/public/data/useJson";
+
 
 function SanitariaCalculator() {
   const [step, setStep] = useState(1);
@@ -22,34 +23,40 @@ function SanitariaCalculator() {
   const [ambientes, setAmbientes] = useState<AmbienteSanitario[]>([{ id: rid('amb'), nombre: 'Baño PB', planta: 0, artefactos: { inodoro: 1, pileta_patio: 1 } }]);
   const [montantes, setMontantes] = useState<Montante[]>([]);
   const [colectoras, setColectoras] = useState<Colectora[]>([{ id: rid('col'), nombre: 'Colectora Principal', longitud_m: 15, accesorios: {} }]);
+  const [ventilaciones, setVentilaciones] = useState<TramoVentilacion[]>([]); // Nuevo estado para la ventilación
   
-  const [results, setResults] = useState<{informe: ResultRow[], recomendaciones: string[]} | null>(null);
-  const [materials, setMaterials] = useState<MaterialLine[]>([]);
+  const [results, setResults] = useState<ResultadoSanitario | null>(null);
   
   useEffect(() => {
     setResults(null);
-    setMaterials([]);
-  }, [edificio, disposicion, ambientes, montantes, colectoras]);
+  }, [edificio, disposicion, ambientes, montantes, colectoras, ventilaciones]); // Se añade 'ventilaciones' a las dependencias
 
   const catalogos = {
     pvcPegamento: useJson("/data/sanitaria/catalogo_pvc_pegamento.json", {}),
     pvcJunta: useJson("/data/sanitaria/catalogo_pvc_junta.json", {}),
     pendientes: useJson("/data/sanitaria/pendientes_por_dn.json", []),
-    distanciasMax: useJson("/data/sanitaria/long_max_entre_accesos.json", {}),
+    distanciasMax: useJson("/data/sanitaria/long_max_entre_accesos.json", { general_m: 30, a_artefactos_sin_prol_m: 15 }),
   };
 
   const handleCalculate = () => {
-    const payload: SanitariaPayload = { edificio, disposicion, ambientes, montantes, colectoras, catalogos };
-    const { informe, recomendaciones, materiales } = calcularSanitaria(payload);
-    setResults({ informe, recomendaciones });
-    setMaterials(materiales);
+    const payload: SanitariaPayload = { 
+      edificio, 
+      disposicion, 
+      ambientes, 
+      montantes, 
+      colectoras, 
+      ventilaciones, // Se pasa el nuevo estado al payload
+      catalogos 
+    };
+    const resultData = calcularSanitaria(payload);
+    setResults(resultData);
   };
   
   const defaultTitle = useMemo(() => `Instalación Sanitaria - ${ambientes.length} ambientes`, [ambientes]);
   const rawData = useMemo(() => ({
-    inputs: { edificio, disposicion, ambientes, montantes, colectoras },
-    outputs: { ...results, materials }
-  }), [edificio, disposicion, ambientes, montantes, colectoras, results, materials]);
+    inputs: { edificio, disposicion, ambientes, montantes, colectoras, ventilaciones }, // Se añade 'ventilaciones'
+    outputs: { ...results }
+  }), [edificio, disposicion, ambientes, montantes, colectoras, ventilaciones, results]); // Se añade 'ventilaciones'
 
   return (
     <section className="space-y-6">
@@ -59,11 +66,12 @@ function SanitariaCalculator() {
           {step === 1 && <Step1_General edificio={edificio} setEdificio={setEdificio} disposicion={disposicion} setDisposicion={setDisposicion} />}
           {step === 2 && <Step2_Ambientes ambientes={ambientes} setAmbientes={setAmbientes} plantas={edificio.plantas} />}
           {step === 3 && <Step3_Trazado montantes={montantes} setMontantes={setMontantes} colectoras={colectoras} setColectoras={setColectoras} plantas={edificio.plantas} />}
+          {step === 4 && <Step4_Ventilacion ventilaciones={ventilaciones} setVentilaciones={setVentilaciones} plantas={edificio.plantas} />}
           <div className="flex justify-between items-center pt-4 border-t border-border">
             <button onClick={() => setStep(s => Math.max(1, s - 1))} disabled={step === 1} className="btn btn-secondary">Anterior</button>
-            <span className="text-sm font-medium">Paso {step} de 3</span>
-            {step < 3 ? (
-              <button onClick={() => setStep(s => Math.min(3, s + 1))} className="btn btn-primary">Siguiente</button>
+            <span className="text-sm font-medium">Paso {step} de 4</span>
+            {step < 4 ? (
+              <button onClick={() => setStep(s => Math.min(4, s + 1))} className="btn btn-primary">Siguiente</button>
             ) : (
               <button onClick={handleCalculate} className="btn btn-primary">Calcular</button>
             )}
@@ -85,15 +93,15 @@ function SanitariaCalculator() {
                     </ul>
                 </div>
               )}
-              {materials.length > 0 && (
+              {results.materiales.length > 0 && (
                 <div className="card p-4 space-y-3">
                   <h3 className="font-semibold flex items-center mb-3">Lista Completa de Materiales</h3>
-                  <ResultTable items={materials.map(m => ({label: m.label, qty: m.qty, unit: m.unit}))} />
+                  <ResultTable items={results.materiales.map(m => ({label: m.label, qty: m.qty, unit: m.unit}))} />
                   <div className="pt-3 border-t border-border">
                     <AddToProject
                       kind="sanitaria"
                       defaultTitle={defaultTitle}
-                      items={materials}
+                      items={results.materiales}
                       raw={rawData}
                     />
                   </div>
@@ -103,7 +111,7 @@ function SanitariaCalculator() {
           ) : (
              <div className="card p-4 h-full flex items-center justify-center">
                 <p className="text-center text-foreground/70">
-                    Completa los 3 pasos y presiona "Calcular" para ver el informe de diseño y la lista de materiales.
+                    Completa los 4 pasos y presiona "Calcular" para ver el informe, las validaciones y la lista de materiales.
                 </p>
             </div>
           )}

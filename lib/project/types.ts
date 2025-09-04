@@ -1,6 +1,7 @@
 // lib/project/types.ts
 
-export type Unit = "u" | "m" | "m2" | "m3" | "kg" | "l";
+export type Unit = "u" | "m" | "m2" | "m3" | "kg" | "l" | "rollos";
+
 
 export interface MaterialLine {
   key: string;

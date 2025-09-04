@@ -2,7 +2,7 @@
 
 import HelpPopover from "@/components/ui/HelpPopover";
 import type { Edificio } from "@/lib/calc/agua_types";
-import SimpleNumberInput from "@/components/inputs/SimpleNumberInput"; // <-- IMPORTAMOS EL INPUT CORREGIDO
+import SimpleNumberInput from "@/components/inputs/SimpleNumberInput";
 
 interface Props {
   edificio: Edificio;
@@ -25,14 +25,13 @@ export default function Step1_Edificio({ edificio, setEdificio }: Props) {
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-[var(--color-base)]">Paso 1: Define el Edificio</h3>
+      <h3 className="text-lg font-semibold text-[var(--color-base)]">Paso 1: Define el Edificio y la Presión</h3>
       <div className="grid md:grid-cols-2 gap-4">
         <label className="text-sm block">
           <span className="font-medium flex items-center">
             Número de Plantas
             <HelpPopover>Cantidad total de pisos del edificio (ej: PB + 1 Planta Alta = 2).</HelpPopover>
           </span>
-          {/* USAMOS EL NUEVO INPUT AQUÍ */}
           <SimpleNumberInput
             min={1}
             value={edificio.plantas}
@@ -45,7 +44,6 @@ export default function Step1_Edificio({ edificio, setEdificio }: Props) {
             Altura por Planta (m)
             <HelpPopover>Altura promedio de piso a techo en metros.</HelpPopover>
           </span>
-          {/* USAMOS EL NUEVO INPUT AQUÍ */}
           <SimpleNumberInput
             step="0.1"
             min={2}
@@ -54,16 +52,28 @@ export default function Step1_Edificio({ edificio, setEdificio }: Props) {
             className="w-full px-3 py-2 mt-1"
           />
         </label>
-        <label className="text-sm block col-span-2">
+        <label className="text-sm block">
           <span className="font-medium flex items-center">
             Altura del Tanque sobre Techo (m)
             <HelpPopover>Distancia vertical en metros desde la base del tanque hasta el techo de la última planta.</HelpPopover>
           </span>
-          {/* USAMOS EL NUEVO INPUT AQUÍ */}
           <SimpleNumberInput
             step="0.1"
             value={edificio.alturaTanque_m}
             onChange={value => handleChange('alturaTanque_m', value)}
+            className="w-full px-3 py-2 mt-1"
+          />
+        </label>
+        <label className="text-sm block">
+          <span className="font-medium flex items-center">
+            Presión Inicial (m.c.a.)
+            <HelpPopover>Presión de agua disponible al inicio del sistema. Para tanque elevado, es la 'Altura del Tanque'. Si es red, la presión que informa la compañía (10 m.c.a. ≈ 1 bar).</HelpPopover>
+          </span>
+          <SimpleNumberInput
+            step="0.1"
+            min={0}
+            value={edificio.presionInicial_mca}
+            onChange={value => handleChange('presionInicial_mca', value)}
             className="w-full px-3 py-2 mt-1"
           />
         </label>

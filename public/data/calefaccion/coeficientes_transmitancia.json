@@ -1,0 +1,21 @@
+{
+  "muros": [
+    { "key": "ladrillo_hueco_18_revoque", "label": "Muro Ladrillo Hueco 18cm c/ Revoque", "k": 1.65 },
+    { "key": "ladrillo_comun_30_revoque", "label": "Muro Ladrillo Común 30cm c/ Revoque", "k": 1.45 },
+    { "key": "hormigon_20", "label": "Muro Hormigón 20cm", "k": 3.10 },
+    { "key": "steel_frame_std", "label": "Muro Steel Framing (Standard)", "k": 0.40 }
+  ],
+  "techos": [
+    { "key": "losa_hormigon_20_sin_aislacion", "label": "Losa Hormigón 20cm sin Aislación", "k": 2.90 },
+    { "key": "chapa_sin_aislacion", "label": "Techo de Chapa sin Aislación", "k": 4.50 },
+    { "key": "chapa_con_aislacion_5cm", "label": "Techo de Chapa c/ Aislación 5cm", "k": 0.65 },
+    { "key": "teja_machimbre_aislacion", "label": "Techo de Teja c/ Aislación media", "k": 0.80 }
+  ],
+  "vidrios": [
+    { "key": "simple", "label": "Vidrio Simple (Float 4mm)", "k": 5.80 },
+    { "key": "dvh", "label": "Doble Vidriado Hermético (DVH)", "k": 2.80 }
+  ],
+  "pisos": [
+    { "key": "sobre_tierra", "label": "Piso sobre Tierra sin Aislación", "k": 1.20 }
+  ]
+}

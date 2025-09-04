@@ -8,6 +8,7 @@ export interface Edificio {
   plantas: number;
   alturaPlanta_m: number;
   alturaTanque_m: number;
+  presionInicial_mca: number; // Presión en m.c.a. a la salida del tanque o de la red
   fuenteCaliente: {
     tipo: "termo" | "calefon" | "caldera";
     ubicacion: string;
@@ -35,16 +36,38 @@ export interface Trazado {
   caliente: Tramo[];
 }
 
+// --- Tipos para Catálogos (reemplazando 'any') ---
+
+interface PprPipe {
+  dn_mm: number;
+  inner_mm: number;
+  c_hw: number; // Coeficiente Hazen-Williams
+  barra_m: number;
+}
+
+interface KEquivalente {
+  tipo: string;
+  dn_mm: number;
+  leq_m: number; // Longitud equivalente en metros
+}
+
+interface LimitesVelocidad {
+  min_ms: number;
+  max_ms: number;
+}
+
 // --- Payload completo para la función de cálculo ---
 export interface AguaPayload {
   edificio: Edificio;
   ambientes: Ambiente[];
   trazado: Trazado;
   catalogos: {
-    ppr: any;
-    unidadesConsumo: any;
-    kEquivalentes: any;
-    limitesVelocidad: any;
+    ppr: {
+      pipes: PprPipe[];
+    };
+    unidadesConsumo: Record<string, number>;
+    kEquivalentes: KEquivalente[];
+    limitesVelocidad: LimitesVelocidad;
   }
 }
 
@@ -63,4 +86,8 @@ export interface ResultadoAgua {
   informe: ResultRow[];
   recomendaciones: string[];
   materiales: MaterialLine[];
+  tramosCalculados?: {
+    fria: TramoCalculado[];
+    caliente: TramoCalculado[];
+  };
 }

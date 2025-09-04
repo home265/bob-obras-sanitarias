@@ -1,0 +1,10 @@
+{
+  "hazen_williams_c": {
+    "ppr": 150,
+    "pvc": 140,
+    "hierro_galvanizado_nuevo": 120,
+    "hierro_galvanizado_usado": 100
+  },
+  "gravedad_m_s2": 9.81,
+  "viscosidad_cinematica_agua_m2_s": 1.004e-6
+}

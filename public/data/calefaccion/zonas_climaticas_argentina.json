@@ -1,0 +1,32 @@
+[
+  {
+    "id": "muy_calida",
+    "nombre": "Zona I - Muy Cálida (Noreste)",
+    "temperatura_diseno_invierno_c": 10
+  },
+  {
+    "id": "calida",
+    "nombre": "Zona II - Cálida (Noroeste/Litoral)",
+    "temperatura_diseno_invierno_c": 8
+  },
+  {
+    "id": "templada_calida",
+    "nombre": "Zona III - Templada Cálida (Central)",
+    "temperatura_diseno_invierno_c": 5
+  },
+  {
+    "id": "templada_fria",
+    "nombre": "Zona IV - Templada Fría (Buenos Aires/La Pampa)",
+    "temperatura_diseno_invierno_c": 0
+  },
+  {
+    "id": "fria",
+    "nombre": "Zona V - Fría (Patagonia Norte/Cuyo)",
+    "temperatura_diseno_invierno_c": -5
+  },
+  {
+    "id": "muy_fria",
+    "nombre": "Zona VI - Muy Fría (Patagonia Sur)",
+    "temperatura_diseno_invierno_c": -10
+  }
+]

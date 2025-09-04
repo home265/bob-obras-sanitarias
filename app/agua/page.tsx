@@ -4,16 +4,16 @@ import { useState, useMemo, Suspense, useEffect } from "react";
 import type { MaterialLine } from "@/lib/project/types";
 
 
-import type { Edificio, Ambiente, Trazado, AguaPayload } from "@/lib/calc/agua_types";
+import type { Edificio, Ambiente, Trazado, AguaPayload, ResultadoAgua } from "@/lib/calc/agua_types";
 import Step1_Edificio from "./components/Step1_Edificio";
 import Step2_Ambientes from "./components/Step2_Ambientes";
 import Step3_Trazado from "./components/Step3_Trazado";
 import ResultTable, { type ResultRow } from "@/components/ui/ResultTable";
 import AddToProject from "@/components/ui/AddToProject";
-import HelpPopover from "@/components/ui/HelpPopover";
 import { calcularAgua } from "@/lib/calc/agua";
 import { rid } from "@/lib/id";
 import { useJson } from "@/public/data/useJson";
+
 
 function AguaCalculator() {
   const [step, setStep] = useState(1);
@@ -21,6 +21,7 @@ function AguaCalculator() {
     plantas: 2,
     alturaPlanta_m: 2.8,
     alturaTanque_m: 1.5,
+    presionInicial_mca: 1.5, // Valor inicial por defecto, igual a la altura del tanque
     fuenteCaliente: { tipo: "caldera", ubicacion: "PB - Lavadero" },
   });
   
@@ -31,7 +32,7 @@ function AguaCalculator() {
 
   const [trazado, setTrazado] = useState<Trazado>({ fria: [], caliente: [] });
   
-  const [results, setResults] = useState<{informe: ResultRow[], recomendaciones: string[]} | null>(null);
+  const [results, setResults] = useState<ResultadoAgua | null>(null);
   const [materials, setMaterials] = useState<MaterialLine[]>([]);
   
   useEffect(() => {
@@ -39,17 +40,24 @@ function AguaCalculator() {
     setMaterials([]);
   }, [edificio, ambientes, trazado]);
 
+  // Se agregan los nuevos catálogos y se eliminan los 'any' implícitos
   const catalogos = {
-      ppr: useJson("/data/agua/catalogo_ppr.json", {}),
+      ppr: useJson("/data/agua/catalogo_ppr.json", { pipes: [] }),
       unidadesConsumo: useJson("/data/agua/unidades_consumo.json", {}),
       kEquivalentes: useJson("/data/agua/k_equivalentes.json", []),
-      limitesVelocidad: useJson("/data/agua/limites_velocidad.json", {}),
+      limitesVelocidad: useJson("/data/agua/limites_velocidad.json", { min_ms: 0.5, max_ms: 2.0 }),
+      // formulasHidraulicas: useJson("/data/agua/formulas_hidraulicas.json", {}) // No es necesario pasarlo, es usado internamente por la lib
   };
 
   const handleCalculate = () => {
+    // Se asegura que los catálogos estén cargados antes de calcular
+    if (!catalogos.ppr.pipes.length || !catalogos.kEquivalentes.length) {
+        alert("Los catálogos de materiales aún no han cargado. Por favor, espere un momento y vuelva a intentarlo.");
+        return;
+    }
     const payload: AguaPayload = { edificio, ambientes, trazado, catalogos };
     const { informe, recomendaciones, materiales } = calcularAgua(payload);
-    setResults({ informe, recomendaciones });
+    setResults({ informe, recomendaciones, materiales });
     setMaterials(materiales);
   };
   
@@ -59,8 +67,8 @@ function AguaCalculator() {
   
   const rawData = useMemo(() => ({
     inputs: { edificio, ambientes, trazado },
-    outputs: { ...results, materials }
-  }), [edificio, ambientes, trazado, results, materials]);
+    outputs: { ...results } // 'materials' ya está incluido dentro de 'results'
+  }), [edificio, ambientes, trazado, results]);
 
   return (
     <section className="space-y-6">
@@ -96,7 +104,7 @@ function AguaCalculator() {
               </div>
               {results.recomendaciones.length > 0 && (
                 <div className="card p-4 border-l-4 border-[var(--color-base)]">
-                    <h3 className="font-medium mb-2 text-lg text-[var(--color-base)]">Recomendaciones</h3>
+                    <h3 className="font-medium mb-2 text-lg text-[var(--color-base)]">Recomendaciones Profesionales</h3>
                     <ul className="text-sm space-y-1 list-disc pl-5">
                       {results.recomendaciones.map((rec, i) => <li key={i}>{rec}</li>)}
                     </ul>
@@ -107,7 +115,6 @@ function AguaCalculator() {
                   <h3 className="font-semibold flex items-center mb-3">
                     Lista Completa de Materiales
                   </h3>
-                  {/* AQUÍ ESTÁ LA TABLA DE MATERIALES QUE FALTABA */}
                   <ResultTable items={materials.map(m => ({label: m.label, qty: m.qty, unit: m.unit}))} />
                   <div className="pt-3 border-t border-border">
                     <AddToProject

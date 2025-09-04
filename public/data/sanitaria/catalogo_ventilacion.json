@@ -1,0 +1,15 @@
+{
+  "pipes": [
+    { "key": "pvc_tubo_63", "dn_mm": 63, "barra_m": 3, "label": "Tubo PVC 63mm para Ventilación" },
+    { "key": "pvc_tubo_110", "dn_mm": 110, "barra_m": 3, "label": "Tubo PVC 110mm para Ventilación" }
+  ],
+  "fittings": [
+    { "key": "pvc_codo90_63", "tipo": "codo90", "dn_mm": 63, "label": "Codo 90° PVC 63mm" },
+    { "key": "pvc_codo45_63", "tipo": "codo45", "dn_mm": 63, "label": "Codo 45° PVC 63mm" },
+    { "key": "pvc_ramal45_110x63", "tipo": "ramal45", "dn_mm": [110, 63], "label": "Ramal 45° 110x63mm" }
+  ],
+  "terminals": [
+    { "key": "sombrerete_63", "dn_mm": 63, "label": "Sombrerete 63mm" },
+    { "key": "sombrerete_110", "dn_mm": 110, "label": "Sombrerete 110mm" }
+  ]
+}
